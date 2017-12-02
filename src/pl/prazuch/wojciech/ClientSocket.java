@@ -13,24 +13,25 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
-/**
- *
- * @author Tomek
- */
+
 public class ClientSocket {
 
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
 
+    DataFromClient data;
+
     public ClientSocket() throws IOException {
         socket = new Socket("localhost", 4444);
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
         this.out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
+        data = new DataFromClient();
     }
 
     public static void main(String[] args)
     {
+
         ClientSocket cs = null;
         try {
             cs = new ClientSocket();
@@ -51,7 +52,9 @@ public class ClientSocket {
             while((text = in.readLine()) != null) {
                 System.out.println(text);
                 input = scanner.nextLine();
-                out.println(input);
+                data.setDataFromClient(input);
+                System.out.println(data.getDataFromClient());
+                //out.println(input);
                 if("exit".equalsIgnoreCase(input)) {
                     break;
                 }

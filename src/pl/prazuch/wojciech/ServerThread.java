@@ -12,8 +12,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 public class ServerThread extends Thread {
@@ -21,36 +19,50 @@ public class ServerThread extends Thread {
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
-    private Data data;
+    private DataFromClient dataFromClient;
+    private DataToClient dataToClient;
+    GameTickProcessor gameTickProcessor;
+
 
     public ServerThread(Socket socket) throws UnsupportedEncodingException, IOException {
         this.socket = socket;
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
         this.out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
+        dataFromClient = new DataFromClient();
+        dataToClient = new DataToClient();
+        gameTickProcessor = new GameTickProcessor();
+
     }
 
     @Override
     public void run() {
         String text;
 
-        //data = new Data();
-        //data.setData("1 2 3 4 5 6");
-
-        out.println("Witaj");
+        out.println(dataToClient.getDataToClient());
 
         try {
             while((text = in.readLine()) != null) {
-                System.out.println("Blop!");
+
+                dataFromClient.setDataFromClient(text);
+
+                gameTickProcessor.setDataFromClients(dataFromClient);
+
+                gameTickProcessor.processData();
+
+                dataToClient = gameTickProcessor.getDataToClient();
+
+                out.println(dataToClient.getDataToClient());
+
                 System.out.println(text);
                 if("exit".equalsIgnoreCase(text)) {
                     break;
                 }
                 //data.setMyScore(data.getMyScore()+1);
-                out.println("Server answers: ");
+
 
             }
         } catch (IOException ex) {
-            System.err.println("Error: " + ex.getMessage());
+            System.out.println("Error: " + ex.getMessage());
         } finally {
             try {
                 socket.close();
