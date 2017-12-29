@@ -20,10 +20,13 @@ public class ClientSocket {
     private PrintWriter out;
     private BufferedReader in;
 
+    private String hostname;
+    private String port;
+
     DataFromClient data;
 
-    public ClientSocket() throws IOException {
-        socket = new Socket("localhost", 4444);
+    public ClientSocket(String hostname, String port) throws IOException {
+        socket = new Socket(hostname, Integer.parseInt(port));
         this.in = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
         this.out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
         data = new DataFromClient();
@@ -32,9 +35,10 @@ public class ClientSocket {
     public static void main(String[] args)
     {
 
+
         ClientSocket cs = null;
         try {
-            cs = new ClientSocket();
+            cs = new ClientSocket(args[0], args[1]);
         } catch (Exception e) {
             e.printStackTrace();
         }

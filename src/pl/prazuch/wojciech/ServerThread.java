@@ -21,8 +21,23 @@ public class ServerThread extends Thread {
     private BufferedReader in;
     private DataFromClient dataFromClient;
     private DataToClient dataToClient;
-    GameTickProcessor gameTickProcessor;
 
+
+    public DataFromClient getDataFromClient() {
+        return dataFromClient;
+    }
+
+    public void setDataFromClient(DataFromClient dataFromClient) {
+        this.dataFromClient = dataFromClient;
+    }
+
+    public DataToClient getDataToClient() {
+        return dataToClient;
+    }
+
+    public void setDataToClient(DataToClient dataToClient) {
+        this.dataToClient = dataToClient;
+    }
 
     public ServerThread(Socket socket) throws UnsupportedEncodingException, IOException {
         this.socket = socket;
@@ -30,7 +45,6 @@ public class ServerThread extends Thread {
         this.out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
         dataFromClient = new DataFromClient();
         dataToClient = new DataToClient();
-        gameTickProcessor = new GameTickProcessor();
 
     }
 
@@ -45,19 +59,12 @@ public class ServerThread extends Thread {
 
                 dataFromClient.setDataFromClient(text);
 
-                gameTickProcessor.setDataFromClients(dataFromClient);
-
-                gameTickProcessor.processData();
-
-                dataToClient = gameTickProcessor.getDataToClient();
-
                 out.println(dataToClient.getDataToClient());
 
                 System.out.println(text);
                 if("exit".equalsIgnoreCase(text)) {
                     break;
                 }
-                //data.setMyScore(data.getMyScore()+1);
 
 
             }

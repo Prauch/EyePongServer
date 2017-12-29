@@ -21,7 +21,7 @@ public class EyePongServerSocket {
     public static void main(String[] args)
     {
 
-        EyePongServerSocket eyePongServerSocket = new EyePongServerSocket(4444);
+        EyePongServerSocket eyePongServerSocket = new EyePongServerSocket(Integer.parseInt(args[0]));
         try {
             eyePongServerSocket.start();
         } catch (IOException e) {
@@ -32,15 +32,11 @@ public class EyePongServerSocket {
 
 
     public void start() throws IOException {
-        try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
-            while(true) {
-                Socket socket = serverSocket.accept();
-                new ServerThread(socket).start();
-            }
+
+
+            GameTickProcessor gameTickProcessor = new GameTickProcessor(portNumber);
+
         }
-    }
-
-
-
-
 }
+
+

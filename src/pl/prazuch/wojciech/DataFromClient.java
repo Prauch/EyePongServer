@@ -107,4 +107,16 @@ public class DataFromClient {
     public void setGameStarted(int gameStarted) {
         this.gameStarted = gameStarted;
     }
+
+
+    @Override
+    public String toString() {
+        return "DataFromClient{" +
+                "playerX=" + playerX +
+                ", playerY=" + playerY +
+                ", playerHeight=" + playerHeight +
+                ", playerWidth=" + playerWidth +
+                ", gameStarted=" + gameStarted +
+                '}';
+    }
 }

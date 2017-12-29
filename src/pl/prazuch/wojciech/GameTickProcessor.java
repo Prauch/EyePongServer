@@ -1,5 +1,12 @@
 package pl.prazuch.wojciech;
 
+import com.sun.security.ntlm.Server;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 /**
  * Created by wojciechprazuch on 30.11.2017.
  */
@@ -18,6 +25,10 @@ public class GameTickProcessor {
     private int scoreP2;
 
 
+    private ServerThread serverThread1;
+
+    private ServerThread serverThread2;
+
 
     private Ball ball;
 
@@ -27,27 +38,47 @@ public class GameTickProcessor {
 
     private DataToClient[] dataToClients;
 
-    GameTickProcessor()
+    GameTickProcessor(int portNumber)
     {
-        scoreP1 = 0;
-        scoreP2 = 0;
 
-        ballSpeedY = 1;
-        ballSpeedX = 1;
+        try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
+                Socket socket1 = serverSocket.accept();
+                serverThread1 = new ServerThread(socket1);
+                serverThread1.start();
 
-        width = 1280;
-        height = 750;
+                Socket socket2 = serverSocket.accept();
+                serverThread2 = new ServerThread(socket2);
+                serverThread2.start();
 
-        dataFromClients = new DataFromClient[2];
-        dataToClients = new DataToClient[2];
+            }
+            catch (UnsupportedEncodingException e1) {
+            e1.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
 
-        player1 = new Paddle(100, 15, 0, 0);
-        player2 = new Paddle(100, 15, width-15, 0);
+        prepareGameTickProcessor();
 
 
-        ball = new Ball(15, width/2, height/2, ballSpeedX, ballSpeedY);
 
 
+        while(true)
+        {
+
+            dataFromClients[0] = serverThread1.getDataFromClient();
+
+            processData();
+
+            serverThread1.setDataToClient(dataToClients[0]);
+
+
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
 
     }
 
@@ -113,7 +144,6 @@ public class GameTickProcessor {
 
     private void checkGameWorldRulesAndCorrectIfNecessary(){
 
-
         if(didBallHitHorizontalBorders())
             ball.setySpeed(ball.getySpeed()*(-1));
 
@@ -129,8 +159,6 @@ public class GameTickProcessor {
         }
 
         if( didBallHitAnyOfThePaddles()) {
-
-
             if(whichPlayerDidTheBallHit()==Player.PLAYER1)
             {
                 ball.calculateNewSpeedAfterIntersection(player1.getNormalizedRelativeIntersectionY(ball.getyPos()));
@@ -140,11 +168,11 @@ public class GameTickProcessor {
                 ball.calculateNewSpeedAfterIntersection(player2.getNormalizedRelativeIntersectionY(ball.getyPos()));
                 ball.setxSpeed(ball.getxSpeed()*(-1));
             }
-
-
         }
-
     }
+
+
+
 
 
     private boolean hasPlayer1Won() {
@@ -225,6 +253,25 @@ public class GameTickProcessor {
 
 
 
+    private void prepareGameTickProcessor()
+    {
+        scoreP1 = 0;
+        scoreP2 = 0;
+
+        ballSpeedY = 2;
+        ballSpeedX = 2;
+
+        width = 1280;
+        height = 750;
+
+        dataFromClients = new DataFromClient[2];
+        dataToClients = new DataToClient[2];
+
+        player1 = new Paddle(100, 15, 0, 0);
+        player2 = new Paddle(100, 15, width-15, 0);
+
+        ball = new Ball(15, width/2, height/2, ballSpeedX, ballSpeedY);
+    }
 
 
 
