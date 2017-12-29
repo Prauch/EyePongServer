@@ -18,6 +18,11 @@ public class GameTickProcessor {
     private int width;
     private int height;
 
+    private double resolutionMultiplierX;
+    private double resolutionMultiplierY;
+
+    private String resolutionInfo;
+
     Paddle player1;
     Paddle player2;
 
@@ -38,8 +43,7 @@ public class GameTickProcessor {
 
     private DataToClient[] dataToClients;
 
-    GameTickProcessor(int portNumber)
-    {
+    GameTickProcessor(int portNumber) throws InterruptedException {
 
         try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
                 Socket socket1 = serverSocket.accept();
@@ -59,17 +63,27 @@ public class GameTickProcessor {
 
         prepareGameTickProcessor();
 
+        Thread.sleep(1000);
 
+        resolutionInfo = serverThread1.getResolutionInfo();
+
+        parseWidthAndHeight(resolutionInfo);
+
+        resolutionInfo = serverThread2.getResolutionInfo();
+
+        parseMultipliers(resolutionInfo);
 
 
         while(true)
         {
 
             dataFromClients[0] = serverThread1.getDataFromClient();
+            dataFromClients[1] = serverThread2.getDataFromClient();
 
             processData();
 
             serverThread1.setDataToClient(dataToClients[0]);
+            serverThread2.setDataToClient(dataToClients[1]);
 
 
             try {
@@ -83,7 +97,7 @@ public class GameTickProcessor {
     }
 
 
-    public void setDataFromClients(DataFromClient player1Data)//, DataFromClient player2Data)
+    public void setDataFromClients(DataFromClient player1Data, DataFromClient player2Data)
     {
 
         dataFromClients[0] = player1Data;
@@ -93,9 +107,12 @@ public class GameTickProcessor {
         player1.setHeight(dataFromClients[0].getPlayerHeight());
         player1.setWidth(dataFromClients[0].getPlayerWidth());
 
-        //dataFromClients[1] = player2Data;
+        dataFromClients[1] = player2Data;
 
-
+        player2.setyPos(dataFromClients[1].getPlayerY());
+        player2.setxPos(dataFromClients[1].getPlayerX());
+        player2.setHeight(dataFromClients[1].getPlayerHeight());
+        player2.setWidth(dataFromClients[1].getPlayerWidth());
 
     }
 
@@ -107,29 +124,62 @@ public class GameTickProcessor {
 
         ball.Move();
 
-        TickComputersAI();
+        //TickComputersAI();
 
-        dataToClients[0] = prepareDataToClient(1);
+        dataToClients[0] = prepareDataToClient1();
+        dataToClients[1] = prepareDataToClient2();
 
 
     }
 
-    public DataToClient getDataToClient()
+    public DataToClient getDataToClient1()
     {
         return dataToClients[0];
     }
 
-    private DataToClient prepareDataToClient(int whichPlayer) {
+    public DataToClient getDataToClient2() { return dataToClients[1]; }
 
-        whichPlayer--;
+    private DataToClient prepareDataToClient1() {
+
 
         DataToClient dataToClient = new DataToClient();
 
         dataToClient.setBallX((int) ball.getxPos());
         dataToClient.setBallY((int) ball.getyPos());
 
-        dataToClient.setOpponentX(width-15);
-        dataToClient.setOpponentY((int)ball.getyPos());
+        dataToClient.setOpponentX((int)player2.getxPos());
+        dataToClient.setOpponentY((int)player2.getyPos());
+
+        dataToClient.setGameActive(returnGameActive());
+
+        dataToClient.setGameScorePlayer1(scoreP1);
+        dataToClient.setGameScorePlayer2(scoreP2);
+
+        return dataToClient;
+
+
+    }
+
+    private int returnGameActive()
+    {
+        if(dataFromClients[0].getGameStarted() > 0 && dataFromClients[1].getGameStarted() > 0)
+        {
+            return 1;
+        }
+        else
+            return 0;
+    }
+
+    private DataToClient prepareDataToClient2() {
+
+
+        DataToClient dataToClient = new DataToClient();
+
+        dataToClient.setBallX((int) (ball.getxPos()*resolutionMultiplierX));
+        dataToClient.setBallY((int) (ball.getyPos()*resolutionMultiplierY));
+
+        dataToClient.setOpponentX((int)player1.getxPos());
+        dataToClient.setOpponentY((int)player1.getyPos());
 
         dataToClient.setGameActive(1);
 
@@ -172,7 +222,27 @@ public class GameTickProcessor {
     }
 
 
+    private void parseWidthAndHeight(String resolutionInfo)
+    {
+        String[] dimens = resolutionInfo.split(" ");
 
+        width = Integer.valueOf(dimens[0]);
+        height = Integer.valueOf(dimens[1]);
+
+    }
+
+    private void parseMultipliers(String resolutionInfo)
+    {
+        String[] dimens = resolutionInfo.split(" ");
+
+        int tempWidth = Integer.valueOf(dimens[0]);
+        int tempHeight = Integer.valueOf(dimens[1]);
+
+        resolutionMultiplierX = ((double)tempWidth/(double)width);
+
+        resolutionMultiplierY = ((double)tempHeight/(double)height);
+
+    }
 
 
     private boolean hasPlayer1Won() {
@@ -261,8 +331,6 @@ public class GameTickProcessor {
         ballSpeedY = 2;
         ballSpeedX = 2;
 
-        width = 1280;
-        height = 750;
 
         dataFromClients = new DataFromClient[2];
         dataToClients = new DataToClient[2];

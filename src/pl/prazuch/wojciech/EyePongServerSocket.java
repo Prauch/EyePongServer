@@ -34,9 +34,13 @@ public class EyePongServerSocket {
     public void start() throws IOException {
 
 
+        try {
             GameTickProcessor gameTickProcessor = new GameTickProcessor(portNumber);
-
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+
+    }
 }
 
 

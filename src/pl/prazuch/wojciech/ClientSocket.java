@@ -57,8 +57,6 @@ public class ClientSocket {
                 System.out.println(text);
                 input = scanner.nextLine();
                 data.setDataFromClient(input);
-                System.out.println(data.getDataFromClient());
-                //out.println(input);
                 if("exit".equalsIgnoreCase(input)) {
                     break;
                 }

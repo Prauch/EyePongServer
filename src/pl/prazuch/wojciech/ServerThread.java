@@ -23,6 +23,16 @@ public class ServerThread extends Thread {
     private DataToClient dataToClient;
 
 
+    private String resolutionInfo;
+
+    public String getResolutionInfo() {
+        return resolutionInfo;
+    }
+
+    public void setResolutionInfo(String resolutionInfo) {
+        this.resolutionInfo = resolutionInfo;
+    }
+
     public DataFromClient getDataFromClient() {
         return dataFromClient;
     }
@@ -54,14 +64,22 @@ public class ServerThread extends Thread {
 
         out.println(dataToClient.getDataToClient());
 
+        boolean didReceiveResolutionInfo = false;
+
         try {
             while((text = in.readLine()) != null) {
+
+                if(!didReceiveResolutionInfo)
+                {
+                    resolutionInfo = text;
+                    didReceiveResolutionInfo = true;
+                    continue;
+                }
 
                 dataFromClient.setDataFromClient(text);
 
                 out.println(dataToClient.getDataToClient());
 
-                System.out.println(text);
                 if("exit".equalsIgnoreCase(text)) {
                     break;
                 }
